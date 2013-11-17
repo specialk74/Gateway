@@ -111,6 +111,7 @@ quint8 CanDevice::getComStatFromDevice()
 /*!
   Sequenza di comandi da mandare al sistema per configurare il device CAN
   */
+#if 0
 static const char *sequenzaComandi[] =
 {
     "ifconfig vcan%1 down",
@@ -119,7 +120,14 @@ static const char *sequenzaComandi[] =
     "ifconfig can%1 up",
     "ifconfig vcan%1 up"
 };
-
+#else
+static const char *sequenzaComandi[] =
+{
+    "ifconfig can%1 down",
+    "ip link set can%1 type can bitrate 60606",
+    "ifconfig can%1 up",
+};
+#endif
 /*!
  * \brief CanDevice::setPort
  * \param port

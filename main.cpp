@@ -1,20 +1,20 @@
-#include <QDebug>
-#include <QStringList>
-#include <QRegExp>
 #include <QCoreApplication>
-
-#include "tcpgateway.h"
-#include "rs232device.h"
+#include <QDebug>
+#include <QRegExp>
+#include <QStringList>
 
 #ifdef Q_WS_QWS
   #include "candevice.h"
 #endif // #ifdef Q_WS_QWS
+#include "handlermessage.h"
+#include "rs232device.h"
+#include "tcpgateway.h"
 
-const char projectName[] = "ComOven2";
-const int portServer = 6800;
+        const   char    projectName[]   = "ComOven2";
+        const   int     portServer      = 6800;
 
-static const int versioneMajor = 0;
-static const int versioneMinor = 1;
+static  const   int     versioneMajor   = 0;
+static  const   int     versioneMinor   = 1;
 
 QString getVersion ()
 {
@@ -31,17 +31,16 @@ void usage (void)
     qDebug() << "      -h, --help          visualizza questo help";
 }
 
+#if 0
 AbstractDevice * connectToSerialDevice (const bool & debug)
 {
     AbstractDevice * device = Rs232Device::Instance();
     Rs232Device::Instance()->setVersioneSw(versioneMajor, versioneMinor);
     Rs232Device::Instance()->setDebug(debug);
 
-//    QObject::connect (TcpGateway::Instance(), SIGNAL(toDeviceSignal(QByteArray)), Rs232Device::Instance(), SLOT(fromClientSlot(QByteArray)));
-//    QObject::connect (Rs232Device::Instance(), SIGNAL(toClientsSignal(QByteArray)), TcpGateway::Instance(), SLOT(fromDeviceSlot(QByteArray)));
-
     return device;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -94,7 +93,7 @@ int main(int argc, char *argv[])
     if (printUsage)
         usage();
 
-    TcpGateway::Instance()->setDebug (debug);
+    //TcpGateway::Instance()->setDebug (debug);
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
@@ -105,16 +104,19 @@ int main(int argc, char *argv[])
     if (!CanDevice::Instance()->exist())
     {
        delete CanDevice::Instance();
-       device  =  connectToSerialDevice(debug);
+       //device  =  connectToSerialDevice(debug);
+        device = Rs232Device::Instance();
     }
 #else // #ifdef Q_WS_QWS
-    device = connectToSerialDevice(debug);
+    //device = connectToSerialDevice(debug);
+    device = Rs232Device::Instance();
 #endif // #ifdef Q_WS_QWS
 
+#if 0
     if (device)
     {
-        device->setVersioneSw(versioneMajor, versioneMinor);
-        device->setDebug(debug);
+        //device->setVersioneSw(versioneMajor, versioneMinor);
+        //device->setDebug(debug);
         QObject::connect (TcpGateway::Instance(), SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                           device, SLOT(fromClientSlot(QByteArray, ClientOven*)));
         QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
@@ -122,6 +124,11 @@ int main(int argc, char *argv[])
         QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
                           TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
     }
+#else
+    HandlerMessage::Instance(TcpGateway::Instance(), device);
+    HandlerMessage::Instance()->setVersioneSw(versioneMajor, versioneMinor);
+    HandlerMessage::Instance()->setDebug(debug);
+#endif
 
     return app.exec();
 }

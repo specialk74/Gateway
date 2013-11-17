@@ -9,7 +9,7 @@ AbstractDevice::AbstractDevice(QObject *parent) :
     QObject(parent)
 {
     m_debug = false;
-    m_versioneMajor = m_versioneMinor = 0;
+//    m_versioneMajor = m_versioneMinor = 0;
 }
 
 void AbstractDevice::setDebug(const bool &val)
@@ -22,12 +22,13 @@ void AbstractDevice::debug (const QString &testo)
     if (m_debug)
         qDebug() << headDebug << qPrintable(testo);
 }
-
+#if 0
 void AbstractDevice::setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor)
 {
     m_versioneMajor = versioneMajor;
     m_versioneMinor = versioneMinor;
 }
+#endif
 
 #if 0
 union lunghezza {
@@ -54,12 +55,13 @@ void AbstractDevice::fromDeviceToClients (const QByteArray &msgCANfromDevice)
 }
 
 /*!
- * \brief AbstractDevice::fromClientSlot
+ * \brief AbstractDevice::fromClientHandler
  * \param buffer - dati che mi arrivano dal Client
  */
-const int lngHeadMsg = 5;
-void AbstractDevice::fromClientSlot (const QByteArray &buffer, ClientOven*client)
+//const int lngHeadMsg = 5;
+void AbstractDevice::fromClientHandler (const QByteArray &buffer)
 {
+#if 0
     // Controllo che la lunghezza minima sia 5 (un byte per il tipo e 4 byte di lunghezza)
     if (m_debug)
     {
@@ -93,40 +95,43 @@ void AbstractDevice::fromClientSlot (const QByteArray &buffer, ClientOven*client
 
     switch (comando)
     {
-    case TIPO_RX_TCPIP_CAN_MSG:
-    {
-        QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
-        toDevice (bufferToDevice);
-        emit toClientsSignal(buffer, client);
-    }
+        case TIPO_RX_TCPIP_CAN_MSG:
+        {
+            QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
+            toDevice (bufferToDevice);
+            emit toClientsSignal(buffer, client);
+        }
         break;
 
-    case TIPO_RX_TCPIP_GET_ID:
-    {
-        QByteArray bufferToClients;
-        QByteArray bufferForDevice;
+        case TIPO_RX_TCPIP_GET_ID:
+        {
+            QByteArray bufferToClients;
+            QByteArray bufferForDevice;
 
-        buildGetId (bufferForDevice);
-        QDataStream stream(&bufferToClients, QIODevice::WriteOnly);
-        stream << (quint8) getTipoIdFromDevice();
-        lunghezza = _htonl(8 + bufferForDevice.length());
-        stream << (quint32) lunghezza; // Lunghezza
-        stream << (quint8) 0; // Stato Interno
-        stream << (quint8) m_versioneMajor;
-        stream << (quint8) m_versioneMinor;
-        quint8 var;
-        foreach (var, bufferForDevice)
-            stream << var;
+            buildGetId (bufferForDevice);
+            QDataStream stream(&bufferToClients, QIODevice::WriteOnly);
+            stream << (quint8) getTipoIdFromDevice();
+            lunghezza = _htonl(8 + bufferForDevice.length());
+            stream << (quint32) lunghezza; // Lunghezza
+            stream << (quint8) 0; // Stato Interno
+            stream << (quint8) m_versioneMajor;
+            stream << (quint8) m_versioneMinor;
+            quint8 var;
+            foreach (var, bufferForDevice)
+                stream << var;
 
-        emit toOneClientOnlySignal(bufferToClients, client);
-    }
+            emit toOneClientOnlySignal(bufferToClients, client);
+        }
         break;
 
-    default:
-    {
-        QString testo = QString ("Messaggio sconosciuto: %1").arg(comando);
-        debug (testo);
-    }
+        default:
+        {
+            QString testo = QString ("Messaggio sconosciuto: %1").arg(comando);
+            debug (testo);
+        }
         break;
     }
+#else
+    toDevice (buffer);
+#endif
 }

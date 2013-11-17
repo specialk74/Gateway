@@ -78,11 +78,11 @@ bool decodeRs232Msg (const QByteArray &bufferIn, QByteArray &bufferOut, int & id
 {
     int end = bufferIn.length();
     char dato;
-printf ("dentro decodeRs232Msg idx: %d end: %d\n", idx, end);
+//printf ("dentro decodeRs232Msg idx: %d end: %d\n", idx, end);
     for (;idx < end; idx++)
     {
         dato = bufferIn[idx];
-	printf (" - %x - ", dato);
+//	printf (" - %x - ", dato);
         switch (stato)
         {
         // Cerco il primo DLE della sequenza DLE-STX
@@ -145,7 +145,7 @@ printf ("dentro decodeRs232Msg idx: %d end: %d\n", idx, end);
     }
 
     // Non ho trovato un buffer valido completo
-printf ("\n");
+//printf ("\n");
     return false;
 }
 
