@@ -125,9 +125,19 @@ int main(int argc, char *argv[])
                           TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
     }
 #else
-    HandlerMessage::Instance(TcpGateway::Instance(), device);
-    HandlerMessage::Instance()->setVersioneSw(versioneMajor, versioneMinor);
-    HandlerMessage::Instance()->setDebug(debug);
+    if (device)
+    {
+        HandlerMessageTcpIp::Instance(TcpGateway::Instance(), device);
+        HandlerMessageTcpIp::Instance()->setVersioneSw(versioneMajor, versioneMinor);
+        HandlerMessageTcpIp::Instance()->setDebug(debug);
+
+        QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                          TcpGateway::Instance(), SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+
+        QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
+                          TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
+
+    }
 #endif
 
     return app.exec();

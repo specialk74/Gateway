@@ -31,7 +31,7 @@ public:
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
-    void toOneClientOnlySignal (const QByteArray &buffer, ClientOven *client);
+//    void toOneClientOnlySignal (const QByteArray &buffer, ClientOven *client);
 
 protected:
 

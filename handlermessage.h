@@ -3,15 +3,17 @@
 
 #include <QObject>
 
+class QTimer;
+
 class AbstractDevice;
 class ClientOven;
 class TcpGateway;
 
-class HandlerMessage : public QObject
+class HandlerMessageTcpIp : public QObject
 {
     Q_OBJECT
 public:
-    static HandlerMessage *Instance (TcpGateway *clients = 0, AbstractDevice * device = 0, QObject *parent= 0);
+    static HandlerMessageTcpIp *Instance (TcpGateway *clients = 0, AbstractDevice * device = 0, QObject *parent= 0);
     void setDebug(const bool &val);
     void setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor);
 
@@ -23,22 +25,26 @@ public:
 #define TIPO_RX_TCPIP_POWER_OFF     (0xFF)
 
 protected:
-    explicit HandlerMessage(TcpGateway *clients, AbstractDevice * device, QObject *parent);
+    explicit HandlerMessageTcpIp(TcpGateway *clients, AbstractDevice * device, QObject *parent);
     void debug (const QString &testo);
 
 private:
-    HandlerMessage     *m_Instance;
+    static HandlerMessageTcpIp     *m_Instance;
     bool                m_debug;
     quint8              m_versioneMajor;
     quint8              m_versioneMinor;
     TcpGateway         *m_clients;
     AbstractDevice     *m_device;
+    quint8              m_statoWD;
+    QTimer             *m_timerWD;
 
 protected slots:
     void fromClientSlot (const QByteArray &buffer, ClientOven*client);
+    void timeoutWd ();
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
+    void toOneClientOnlySignal (const QByteArray &buffer, ClientOven *client);
 };
 
 #endif // HANDLERMESSAGE_H

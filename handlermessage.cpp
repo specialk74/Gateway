@@ -1,20 +1,25 @@
+#include <QTimer>
+
 #include "abstractdevice.h"
 #include "handlermessage.h"
 #include "tcpgateway.h"
 
-HandlerMessage * HandlerMessage::m_Instance = NULL;
+static const char headDebug[] = "[HandlerMessage]";
 
-HandlerMessage *HandlerMessage::Instance (TcpGateway *clients, AbstractDevice * device, QObject *parent)
+HandlerMessageTcpIp * HandlerMessageTcpIp::m_Instance = NULL;
+
+HandlerMessageTcpIp *HandlerMessageTcpIp::Instance (TcpGateway *clients, AbstractDevice * device, QObject *parent)
 {
     if (m_Instance == NULL)
-        new HandlerMessage(clients, device, parent);
+        new HandlerMessageTcpIp(clients, device, parent);
 
     return m_Instance;
 }
 
-HandlerMessage::HandlerMessage(TcpGateway *clients, AbstractDevice * device, QObject *parent) :
+HandlerMessageTcpIp::HandlerMessageTcpIp(TcpGateway *clients, AbstractDevice * device, QObject *parent) :
     QObject(parent)
 {
+    m_Instance = this;
     m_debug = false;
     m_versioneMajor = m_versioneMinor = 0;
 
@@ -26,22 +31,18 @@ HandlerMessage::HandlerMessage(TcpGateway *clients, AbstractDevice * device, QOb
     if (device == NULL)
         return;
 
-    //    QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
-    //                      device, SLOT(fromClientSlot(QByteArray, ClientOven*)));
-
     QObject::connect (m_clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
 
     QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-    QObject::connect (m_device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
-    QObject::connect (m_device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
-                      m_clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
+    m_timerWD = new QTimer (this);
+    Q_ASSERT(m_timerWD);
+    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
 }
 
-void HandlerMessage::setDebug(const bool &val)
+void HandlerMessageTcpIp::setDebug(const bool &val)
 {
     m_debug = val;
 
@@ -51,13 +52,13 @@ void HandlerMessage::setDebug(const bool &val)
         m_clients->setDebug(val);
 }
 
-void HandlerMessage::debug (const QString &testo)
+void HandlerMessageTcpIp::debug (const QString &testo)
 {
     if (m_debug)
         qDebug() << headDebug << qPrintable(testo);
 }
 
-void HandlerMessage::setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor)
+void HandlerMessageTcpIp::setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor)
 {
     m_versioneMajor = versioneMajor;
     m_versioneMinor = versioneMinor;
@@ -68,7 +69,7 @@ void HandlerMessage::setVersioneSw (const quint8 &versioneMajor, const quint8 &v
  * \param buffer - dati che mi arrivano dal Client
  */
 const int lngHeadMsg = 5;
-void HandlerMessage::fromClientSlot (const QByteArray &buffer, ClientOven*client)
+void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*client)
 {
     // Controllo che la lunghezza minima sia 5 (un byte per il tipo e 4 byte di lunghezza)
     if (m_debug)
@@ -118,9 +119,9 @@ void HandlerMessage::fromClientSlot (const QByteArray &buffer, ClientOven*client
             QByteArray bufferToClients;
             QByteArray bufferForDevice;
 
-            buildGetId (bufferForDevice);
+            m_device->buildGetId (bufferForDevice);
             QDataStream stream(&bufferToClients, QIODevice::WriteOnly);
-            stream << (quint8) getTipoIdFromDevice();
+            stream << (quint8) m_device->getTipoIdFromDevice();
             lunghezza = _htonl(8 + bufferForDevice.length());
             stream << (quint32) lunghezza; // Lunghezza
             stream << (quint8) 0; // Stato Interno
@@ -148,10 +149,11 @@ void HandlerMessage::fromClientSlot (const QByteArray &buffer, ClientOven*client
         break;
 
         case TIPO_RX_TCPIP_WD:
-        {
-            quint8 statoWd;
-            ds >> statoWd;
-        }
+            ds >> m_statoWD;
+            if (m_statoWD)
+                m_timerWD->start(60*1000);
+            else
+                m_timerWD->stop();
         break;
 
         case TIPO_RX_TCPIP_POWER_OFF:
@@ -164,9 +166,14 @@ void HandlerMessage::fromClientSlot (const QByteArray &buffer, ClientOven*client
 
         default:
         {
-            QString testo = QString ("Messaggio sconosciuto: %1").arg(comando);
+            QString testo = QString ("Messaggio Tcp/Ip sconosciuto: %1").arg(tipo);
             debug (testo);
         }
         break;
     }
+}
+
+void HandlerMessageTcpIp::timeoutWd()
+{
+
 }
