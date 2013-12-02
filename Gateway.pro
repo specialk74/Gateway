@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     abstractdevice.cpp \
     rs232device.cpp \
     rs232deviceprivate.cpp \
-    handlermessage.cpp
+    handlermessage.cpp \
+    powermanager.cpp
 
 HEADERS += \
     tcpgateway.h \
@@ -30,7 +31,8 @@ HEADERS += \
     abstractdevice.h \
     rs232device.h \
     rs232deviceprivate.h \
-    handlermessage.h
+    handlermessage.h \
+    powermanager.h
 
 LIBS += -lQtSerialPort
 

@@ -4,9 +4,11 @@
 #include <QStringList>
 
 #ifdef Q_WS_QWS
-  #include "candevice.h"
+    #include "candevice.h"
 #endif // #ifdef Q_WS_QWS
+
 #include "handlermessage.h"
+#include "powermanager.h"
 #include "rs232device.h"
 #include "tcpgateway.h"
 
@@ -97,7 +99,11 @@ int main(int argc, char *argv[])
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
-    AbstractDevice * device = NULL;
+    AbstractDevice * deviceCAN = NULL;
+
+    PowerManager::Instance()->setDebug(debug);
+    PowerManager::Instance()->setDevice ("/dev/ttyAM0");
+
 
 #ifdef Q_WS_QWS
     device = CanDevice::Instance();
@@ -109,7 +115,7 @@ int main(int argc, char *argv[])
     }
 #else // #ifdef Q_WS_QWS
     //device = connectToSerialDevice(debug);
-    device = Rs232Device::Instance();
+    deviceCAN = Rs232Device::Instance();
 #endif // #ifdef Q_WS_QWS
 
 #if 0
@@ -125,18 +131,18 @@ int main(int argc, char *argv[])
                           TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
     }
 #else
-    if (device)
+    if (deviceCAN)
     {
-        HandlerMessageTcpIp::Instance(TcpGateway::Instance(), device);
-        HandlerMessageTcpIp::Instance()->setVersioneSw(versioneMajor, versioneMinor);
         HandlerMessageTcpIp::Instance()->setDebug(debug);
-
+        HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), deviceCAN);
+        HandlerMessageTcpIp::Instance()->setVersioneSw(versioneMajor, versioneMinor);
+#if 0
         QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                           TcpGateway::Instance(), SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
         QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
                           TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
-
+#endif
     }
 #endif
 

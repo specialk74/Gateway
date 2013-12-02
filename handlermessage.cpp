@@ -2,34 +2,42 @@
 
 #include "abstractdevice.h"
 #include "handlermessage.h"
+#include "powermanager.h"
 #include "tcpgateway.h"
 
 static const char headDebug[] = "[HandlerMessage]";
 
 HandlerMessageTcpIp * HandlerMessageTcpIp::m_Instance = NULL;
 
-HandlerMessageTcpIp *HandlerMessageTcpIp::Instance (TcpGateway *clients, AbstractDevice * device, QObject *parent)
+HandlerMessageTcpIp *HandlerMessageTcpIp::Instance (QObject *parent)
 {
     if (m_Instance == NULL)
-        new HandlerMessageTcpIp(clients, device, parent);
+        new HandlerMessageTcpIp(parent);
 
     return m_Instance;
 }
 
-HandlerMessageTcpIp::HandlerMessageTcpIp(TcpGateway *clients, AbstractDevice * device, QObject *parent) :
+HandlerMessageTcpIp::HandlerMessageTcpIp(QObject *parent) :
     QObject(parent)
 {
     m_Instance = this;
     m_debug = false;
     m_versioneMajor = m_versioneMinor = 0;
+    m_clients = NULL;
+    m_deviceCAN = NULL;
+
+    m_timerWD = new QTimer (this);
+    Q_ASSERT(m_timerWD);
+    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
+}
+
+void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * device)
+{
+    Q_ASSERT(clients);
+    Q_ASSERT(device);
 
     m_clients = clients;
-    m_device = device;
-
-    if (clients == NULL)
-        return;
-    if (device == NULL)
-        return;
+    m_deviceCAN = device;
 
     QObject::connect (m_clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
@@ -37,17 +45,19 @@ HandlerMessageTcpIp::HandlerMessageTcpIp(TcpGateway *clients, AbstractDevice * d
     QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
-    m_timerWD = new QTimer (this);
-    Q_ASSERT(m_timerWD);
-    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
+    QObject::connect (m_deviceCAN, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+
+    QObject::connect (m_deviceCAN, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
+                      m_clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
 }
 
 void HandlerMessageTcpIp::setDebug(const bool &val)
 {
     m_debug = val;
 
-    if (m_device)
-        m_device->setDebug(val);
+    if (m_deviceCAN)
+        m_deviceCAN->setDebug(val);
     if (m_clients)
         m_clients->setDebug(val);
 }
@@ -108,7 +118,7 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         {
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
 
-            m_device->fromClientHandler (bufferToDevice);
+            m_deviceCAN->fromClientHandler (bufferToDevice);
             //toDevice (bufferToDevice);
             emit toClientsSignal(buffer, client);
         }
@@ -119,9 +129,9 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
             QByteArray bufferToClients;
             QByteArray bufferForDevice;
 
-            m_device->buildGetId (bufferForDevice);
+            m_deviceCAN->buildGetId (bufferForDevice);
             QDataStream stream(&bufferToClients, QIODevice::WriteOnly);
-            stream << (quint8) m_device->getTipoIdFromDevice();
+            stream << (quint8) m_deviceCAN->getTipoIdFromDevice();
             lunghezza = _htonl(8 + bufferForDevice.length());
             stream << (quint32) lunghezza; // Lunghezza
             stream << (quint8) 0; // Stato Interno
@@ -145,6 +155,10 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_POWER:
         {
+//#ifdef Q_WS_QWS
+            QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
+            m_devicePower->fromClientHandler (bufferToDevice);
+//#endif
         }
         break;
 
@@ -175,5 +189,7 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
 void HandlerMessageTcpIp::timeoutWd()
 {
+//#ifdef Q_WS_QWS
 
+//#endif
 }

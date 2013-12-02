@@ -7,15 +7,17 @@ class QTimer;
 
 class AbstractDevice;
 class ClientOven;
+class PowerManager;
 class TcpGateway;
 
 class HandlerMessageTcpIp : public QObject
 {
     Q_OBJECT
 public:
-    static HandlerMessageTcpIp *Instance (TcpGateway *clients = 0, AbstractDevice * device = 0, QObject *parent= 0);
+    static HandlerMessageTcpIp *Instance (QObject *parent= 0);
     void setDebug(const bool &val);
     void setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor);
+    void setDevice (TcpGateway *clients, AbstractDevice * device);
 
 #define TIPO_RX_TCPIP_CAN_MSG       (0x00)
 #define TIPO_RX_TCPIP_GET_ID        (0x0B)
@@ -25,18 +27,19 @@ public:
 #define TIPO_RX_TCPIP_POWER_OFF     (0xFF)
 
 protected:
-    explicit HandlerMessageTcpIp(TcpGateway *clients, AbstractDevice * device, QObject *parent);
+    explicit HandlerMessageTcpIp(QObject *parent);
     void debug (const QString &testo);
 
 private:
-    static HandlerMessageTcpIp     *m_Instance;
-    bool                m_debug;
-    quint8              m_versioneMajor;
-    quint8              m_versioneMinor;
-    TcpGateway         *m_clients;
-    AbstractDevice     *m_device;
-    quint8              m_statoWD;
-    QTimer             *m_timerWD;
+    static  HandlerMessageTcpIp     *m_Instance;
+            bool                    m_debug;
+            quint8                  m_versioneMajor;
+            quint8                  m_versioneMinor;
+            TcpGateway              *m_clients;
+            AbstractDevice          *m_deviceCAN;
+            quint8                  m_statoWD;
+            QTimer                  *m_timerWD;
+            PowerManager            *m_devicePower;
 
 protected slots:
     void fromClientSlot (const QByteArray &buffer, ClientOven*client);
