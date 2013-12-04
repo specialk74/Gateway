@@ -20,15 +20,18 @@ HandlerMessageTcpIp *HandlerMessageTcpIp::Instance (QObject *parent)
 HandlerMessageTcpIp::HandlerMessageTcpIp(QObject *parent) :
     QObject(parent)
 {
-    m_Instance = this;
-    m_debug = false;
-    m_versioneMajor = m_versioneMinor = 0;
-    m_clients = NULL;
-    m_deviceCAN = NULL;
-
+    m_Instance      = this;
+    m_debug         = false;
+    m_versioneMajor = 0;
+    m_versioneMinor = 0;
+    m_clients       = NULL;
+    m_deviceCAN     = NULL;
+    m_devicePower   = NULL;
+#if 0
     m_timerWD = new QTimer (this);
     Q_ASSERT(m_timerWD);
     connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
+#endif
 }
 
 void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * device)
@@ -38,18 +41,52 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
 
     m_clients = clients;
     m_deviceCAN = device;
+    m_deviceCAN->setDebug(m_debug);
 
-    QObject::connect (m_clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
+    QObject::disconnect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
+                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
+    QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
 
+    QObject::disconnect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
     QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
-    QObject::connect (m_deviceCAN, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      m_clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
-    QObject::connect (m_deviceCAN, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
-                      m_clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
+
+
+    QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+
+    QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
+                      clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
+}
+
+void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
+{
+    Q_ASSERT(clients);
+    Q_ASSERT(device);
+
+    m_clients = clients;
+    m_devicePower = device;
+    m_devicePower->setDebug(m_debug);
+
+    QObject::disconnect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
+                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
+    QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
+                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
+
+    QObject::disconnect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+    QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+
+
+
+    QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
+                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+
 }
 
 void HandlerMessageTcpIp::setDebug(const bool &val)
@@ -60,6 +97,8 @@ void HandlerMessageTcpIp::setDebug(const bool &val)
         m_deviceCAN->setDebug(val);
     if (m_clients)
         m_clients->setDebug(val);
+    if (m_devicePower)
+        m_devicePower->setDebug(val);
 }
 
 void HandlerMessageTcpIp::debug (const QString &testo)
@@ -117,9 +156,8 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         case TIPO_RX_TCPIP_CAN_MSG:
         {
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
-
-            m_deviceCAN->fromClientHandler (bufferToDevice);
-            //toDevice (bufferToDevice);
+            //m_deviceCAN->fromClientHandler (bufferToDevice);
+            m_deviceCAN->toDevice(bufferToDevice);
             emit toClientsSignal(buffer, client);
         }
         break;
@@ -157,17 +195,17 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         {
 //#ifdef Q_WS_QWS
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
-            m_devicePower->fromClientHandler (bufferToDevice);
+            m_devicePower->toDevice (bufferToDevice);
 //#endif
         }
         break;
 
         case TIPO_RX_TCPIP_WD:
-            ds >> m_statoWD;
-            if (m_statoWD)
-                m_timerWD->start(60*1000);
-            else
-                m_timerWD->stop();
+        {
+            quint8  val;
+            ds >> val;
+            m_devicePower->setWatchDog(val);
+        }
         break;
 
         case TIPO_RX_TCPIP_POWER_OFF:
@@ -187,9 +225,11 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
     }
 }
 
+#if 0
 void HandlerMessageTcpIp::timeoutWd()
 {
 //#ifdef Q_WS_QWS
 
 //#endif
 }
+#endif

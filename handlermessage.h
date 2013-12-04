@@ -18,6 +18,7 @@ public:
     void setDebug(const bool &val);
     void setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor);
     void setDevice (TcpGateway *clients, AbstractDevice * device);
+    void setDevice (TcpGateway *clients, PowerManager * device);
 
 #define TIPO_RX_TCPIP_CAN_MSG       (0x00)
 #define TIPO_RX_TCPIP_GET_ID        (0x0B)
@@ -37,13 +38,13 @@ private:
             quint8                  m_versioneMinor;
             TcpGateway              *m_clients;
             AbstractDevice          *m_deviceCAN;
-            quint8                  m_statoWD;
-            QTimer                  *m_timerWD;
+            //quint8                  m_statoWD;
+            //QTimer                  *m_timerWD;
             PowerManager            *m_devicePower;
 
 protected slots:
     void fromClientSlot (const QByteArray &buffer, ClientOven*client);
-    void timeoutWd ();
+    //void timeoutWd ();
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);

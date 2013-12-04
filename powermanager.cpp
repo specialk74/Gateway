@@ -3,10 +3,14 @@
 #include <QDebug>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
+#include <QTimer>
 
 #include "powermanager.h"
 
 static const char headDebug[] = "[PowerManager]";
+
+static const char wdtMessageStr[] = {0x00};
+static QByteArray wdtMessage (wdtMessageStr);
 
 PowerManager * PowerManager::m_Instance = NULL;
 
@@ -23,10 +27,15 @@ PowerManager::PowerManager(QObject *parent) :
     QObject(parent)
 {
     m_Instance = this;
+    m_statoWD = 0;
 
     m_device = new QSerialPort(this);
     Q_ASSERT(m_device);
     connect(m_device, SIGNAL(readyRead()), this, SLOT(fromDeviceSlot()));
+
+    m_timerWD = new QTimer (this);
+    Q_ASSERT(m_timerWD);
+    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
 }
 
 void PowerManager::setDebug(const bool &val)
@@ -60,12 +69,12 @@ void PowerManager::fromDeviceSlot()
 
 
 /*!
- * \brief PowerManager::fromClientHandler
+ * \brief PowerManager::toDevice
  * \param buffer - messaggio da spedire verso il Power Manager
  */
-void PowerManager::fromClientHandler (const QByteArray & buffer)
+void PowerManager::toDevice (const QByteArray & buffer)
 {
-    if (m_device)
+    if (m_device && m_device->isOpen())
     {
         m_device->write(buffer);
         m_device->flush();
@@ -125,4 +134,19 @@ bool PowerManager::setDevice (const QString &name)
     }
 //#endif
    return true;
+}
+
+
+void PowerManager::setWatchDog (const quint8 &val)
+{
+    m_statoWD = val;
+    if (m_statoWD)
+        m_timerWD->start(10*1000);
+    else
+        m_timerWD->stop();
+}
+
+void PowerManager::timeoutWd()
+{
+    toDevice(wdtMessage);
 }

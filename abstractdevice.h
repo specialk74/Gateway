@@ -27,7 +27,8 @@ public:
 //    void setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor);
     virtual void buildGetId(QByteArray & bufferForDevice) = 0;
     virtual quint8 getTipoIdFromDevice() = 0;
-    void fromClientHandler (const QByteArray &buffer);
+//    void fromClientHandler (const QByteArray &buffer);
+    virtual void toDevice (const QByteArray &buffer) = 0;
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
@@ -37,7 +38,6 @@ protected:
 
 #define TIPO_TX_TCPIP_CAN_MSG 0x00
 
-    virtual void toDevice (const QByteArray &buffer) = 0;
     virtual quint8 getComStatFromDevice() = 0;
     virtual void debug (const QString &testo);
 

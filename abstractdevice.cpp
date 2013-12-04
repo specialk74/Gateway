@@ -54,6 +54,7 @@ void AbstractDevice::fromDeviceToClients (const QByteArray &msgCANfromDevice)
     emit toClientsSignal(bufferToClients, NULL);
 }
 
+#if 0
 /*!
  * \brief AbstractDevice::fromClientHandler
  * \param buffer - dati che mi arrivano dal Client
@@ -135,3 +136,4 @@ void AbstractDevice::fromClientHandler (const QByteArray &buffer)
     toDevice (buffer);
 #endif
 }
+#endif

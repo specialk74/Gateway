@@ -4,6 +4,7 @@
 #include <QObject>
 
 class QSerialPort;
+class QTimer;
 
 class ClientOven;
 
@@ -13,8 +14,9 @@ class PowerManager : public QObject
 public:
     static PowerManager *Instance (QObject *parent= 0);
     void setDebug(const bool &val);
-    void fromClientHandler (const QByteArray & buffer);
+    void toDevice (const QByteArray & buffer);
     bool setDevice (const QString &name);
+    void setWatchDog (const quint8 &val);
 
 #define TIPO_TX_TCPIP_POWER_MSG (0x00)
 
@@ -27,11 +29,14 @@ signals:
 
 protected slots:
     void fromDeviceSlot();
+    void timeoutWd ();
 
 private:
     static  PowerManager        *m_Instance;
             bool                m_debug;
             QSerialPort         *m_device;
+            quint8              m_statoWD;
+            QTimer              *m_timerWD;
 };
 
 #endif // POWERMANAGER_H

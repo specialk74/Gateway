@@ -95,14 +95,16 @@ int main(int argc, char *argv[])
     if (printUsage)
         usage();
 
-    //TcpGateway::Instance()->setDebug (debug);
+    HandlerMessageTcpIp::Instance()->setDebug(debug);
+    HandlerMessageTcpIp::Instance()->setVersioneSw(versioneMajor, versioneMinor);
+
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
     AbstractDevice * deviceCAN = NULL;
 
-    PowerManager::Instance()->setDebug(debug);
     PowerManager::Instance()->setDevice ("/dev/ttyAM0");
+    HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), PowerManager::Instance());
 
 
 #ifdef Q_WS_QWS
@@ -118,33 +120,7 @@ int main(int argc, char *argv[])
     deviceCAN = Rs232Device::Instance();
 #endif // #ifdef Q_WS_QWS
 
-#if 0
-    if (device)
-    {
-        //device->setVersioneSw(versioneMajor, versioneMinor);
-        //device->setDebug(debug);
-        QObject::connect (TcpGateway::Instance(), SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
-                          device, SLOT(fromClientSlot(QByteArray, ClientOven*)));
-        QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                          TcpGateway::Instance(), SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-        QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
-                          TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
-    }
-#else
-    if (deviceCAN)
-    {
-        HandlerMessageTcpIp::Instance()->setDebug(debug);
-        HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), deviceCAN);
-        HandlerMessageTcpIp::Instance()->setVersioneSw(versioneMajor, versioneMinor);
-#if 0
-        QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                          TcpGateway::Instance(), SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-
-        QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
-                          TcpGateway::Instance(), SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
-#endif
-    }
-#endif
+    HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), deviceCAN);
 
     return app.exec();
 }
