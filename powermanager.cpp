@@ -9,7 +9,7 @@
 
 static const char headDebug[] = "[PowerManager]";
 
-static const char wdtMessageStr[] = {0x00};
+static const char wdtMessageStr[] = {0x01};
 static QByteArray wdtMessage (wdtMessageStr);
 
 PowerManager * PowerManager::m_Instance = NULL;
@@ -74,9 +74,22 @@ void PowerManager::fromDeviceSlot()
  * \param buffer - messaggio da spedire verso il Power Manager
  */
 void PowerManager::toDevice (const QByteArray & buffer)
-{
+{    
     if (m_device && m_device->isOpen())
     {
+        QByteArray bufferToDevice = buffer;
+        bufferToDevice.append(buffer.at(0) ^ buffer.at(0));
+
+        if (m_debug)
+        {
+            QDebug debugBuffer = qDebug();
+            debugBuffer << headDebug;
+            int var;
+            foreach (var, bufferToDevice) {
+                debugBuffer << hex << var;
+            }
+        }
+
         m_device->write(buffer);
         m_device->flush();
     }
