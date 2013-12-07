@@ -101,22 +101,18 @@ int main(int argc, char *argv[])
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
-    AbstractDevice * deviceCAN = NULL;
-
     PowerManager::Instance()->setDevice ("/dev/ttyAM0");
     HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), PowerManager::Instance());
 
-
+    AbstractDevice * deviceCAN = NULL;
 #ifdef Q_WS_QWS
     deviceCAN = CanDevice::Instance();
     if (!CanDevice::Instance()->exist())
     {
-       delete CanDevice::Instance();
-       //device  =  connectToSerialDevice(debug);
-        device = Rs232Device::Instance();
+       delete deviceCAN;
+       deviceCAN = Rs232Device::Instance();
     }
 #else // #ifdef Q_WS_QWS
-    //device = connectToSerialDevice(debug);
     deviceCAN = Rs232Device::Instance();
 #endif // #ifdef Q_WS_QWS
 
