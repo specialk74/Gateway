@@ -129,8 +129,8 @@ bool PowerManager::setDevice (const QString &name)
         return false;
     }
 
-    if (!m_device->setBaudRate(QSerialPort::Baud115200)) {
-        QString testo = QString("Can't set rate 115200 baud to port %1, error code %2")
+    if (!m_device->setBaudRate(QSerialPort::Baud9600)) {
+        QString testo = QString("Can't set rate 9600 baud to port %1, error code %2")
                 .arg(name).arg(m_device->error());
         debug(testo);
         return false;
