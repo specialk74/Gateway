@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
 
 #ifdef Q_WS_QWS
-    device = CanDevice::Instance();
+    deviceCAN = CanDevice::Instance();
     if (!CanDevice::Instance()->exist())
     {
        delete CanDevice::Instance();
