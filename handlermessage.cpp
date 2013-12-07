@@ -193,10 +193,8 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_POWER:
         {
-//#ifdef Q_WS_QWS
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
             m_devicePower->toDevice (bufferToDevice);
-//#endif
         }
         break;
 

@@ -28,6 +28,7 @@ PowerManager::PowerManager(QObject *parent) :
 {
     m_Instance = this;
     m_statoWD = 0;
+    m_device = NULL;
 
     m_device = new QSerialPort(this);
     Q_ASSERT(m_device);
