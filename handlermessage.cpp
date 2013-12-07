@@ -41,7 +41,7 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
 
     m_clients = clients;
     m_deviceCAN = device;
-    m_deviceCAN->setDebug(m_debug);
+//    m_deviceCAN->setDebug(m_debug);
 
     QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
