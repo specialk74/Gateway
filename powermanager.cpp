@@ -164,6 +164,13 @@ bool PowerManager::setDevice (const QString &name)
         return false;
     }
 //#endif
+
+    for (quint8 comando = 0; comando != 0xFF; comando++)
+    {
+        QByteArray array;
+        array.append (comando);
+        toDevice (array);
+    }
    return true;
 }
 
