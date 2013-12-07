@@ -16,7 +16,7 @@
         const   int     portServer      = 6800;
 
 static  const   int     versioneMajor   = 0;
-static  const   int     versioneMinor   = 2;
+static  const   int     versioneMinor   = 3;
 
 QString getVersion ()
 {
@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
     quint16 port = portServer;
     bool debug = false;
     bool printUsage = false;
+    QString powerPath;
 
     QStringList args = app.arguments();
     QRegExp rxArgDebug("-d");
@@ -62,6 +63,7 @@ int main(int argc, char *argv[])
     QRegExp rxArgPort("-p([0-9]{1,})");
     QRegExp rxArgPortLong("--port=([0-9]{1,})");
     QRegExp rxArgQws("-qws");
+    QRegExp rxArgPower("-m");
 
 
     for (int i = 1; i < args.size(); ++i) {
@@ -85,6 +87,9 @@ int main(int argc, char *argv[])
         else if (rxArgQws.indexIn(args.at(i)) != -1)
         {
             // Non faccio nulla
+        }
+        else if ((rxArgPower.indexIn(args.at(i)) != -1 )) {
+            powerPath = args.at(i).right(args.at(i).length() - 2);
         }
         else {
             qDebug() << "Uknown arg:" << args.at(i);
