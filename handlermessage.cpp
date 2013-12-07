@@ -43,24 +43,15 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
     m_deviceCAN = device;
     m_deviceCAN->setDebug(m_debug);
 
-    QObject::disconnect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
-                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
     QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
 
-    QObject::disconnect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
     QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
 
-
-
     QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-
-    QObject::connect (device, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
-                      clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
 }
 
 void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
@@ -72,29 +63,16 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
     m_devicePower = device;
     m_devicePower->setDebug(m_debug);
 
-    QObject::disconnect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
-                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
-    QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
-                      this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
-
-    QObject::disconnect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-    QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
-                      clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-
-
-
     QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
-
 }
 
 void HandlerMessageTcpIp::setDebug(const bool &val)
 {
     m_debug = val;
 
-    if (m_deviceCAN)
-        m_deviceCAN->setDebug(val);
+//    if (m_deviceCAN)
+//        m_deviceCAN->setDebug(val);
     if (m_clients)
         m_clients->setDebug(val);
     if (m_devicePower)

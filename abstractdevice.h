@@ -24,15 +24,12 @@ public:
 
     void setDebug (const bool &val);
     inline bool getDebug () { return m_debug; }
-//    void setVersioneSw (const quint8 &versioneMajor, const quint8 &versioneMinor);
     virtual void buildGetId(QByteArray & bufferForDevice) = 0;
     virtual quint8 getTipoIdFromDevice() = 0;
-//    void fromClientHandler (const QByteArray &buffer);
     virtual void toDevice (const QByteArray &buffer) = 0;
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
-//    void toOneClientOnlySignal (const QByteArray &buffer, ClientOven *client);
 
 protected:
 
@@ -45,9 +42,6 @@ protected:
 
 private:
     bool m_debug;
-
-//    quint8 m_versioneMajor;
-//    quint8 m_versioneMinor;
 };
 
 #endif // ABSTRACTDEVICE_H
