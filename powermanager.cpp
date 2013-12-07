@@ -78,7 +78,7 @@ void PowerManager::toDevice (const QByteArray & buffer)
     if (m_device && m_device->isOpen())
     {
         QByteArray bufferToDevice = buffer;
-        bufferToDevice.append(buffer.at(0) ^ buffer.at(0));
+        bufferToDevice.append(buffer.at(0) ^ 0xFF);
 
         if (m_debug)
         {
