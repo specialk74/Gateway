@@ -90,25 +90,8 @@ void PowerManager::toDevice (const QByteArray & buffer)
             }
         }
 
-        m_device->write(buffer);
+        m_device->write(bufferToDevice);
         m_device->flush();
-
-        bufferToDevice = buffer;
-        bufferToDevice.append((buffer.at(0) ^ 0xFF) + 1);
-
-        if (m_debug)
-        {
-            QDebug debugBuffer = qDebug();
-            debugBuffer << headDebug;
-            int var;
-            foreach (var, bufferToDevice) {
-                debugBuffer << hex << var;
-            }
-        }
-
-        m_device->write(buffer);
-        m_device->flush();
-
     }
 }
 
@@ -164,13 +147,19 @@ bool PowerManager::setDevice (const QString &name)
         return false;
     }
 //#endif
-
+#if 0
     for (quint8 comando = 0; comando != 0xFF; comando++)
     {
         QByteArray array;
-        array.append (comando);
-        toDevice (array);
+        for (quint8 comando2 = 0; comando2 != 0xFF; comando2++)
+        {
+            array.clear();
+            array.append (comando);
+            array.append (comando2);
+            toDevice (array);
+        }
     }
+#endif
    return true;
 }
 

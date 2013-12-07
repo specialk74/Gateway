@@ -150,7 +150,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_GET_ID:
         {
-        debug("TIPO_RX_TCPIP_GET_ID");
             QByteArray bufferToClients;
             QByteArray bufferForDevice;
 
@@ -172,7 +171,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_SET_DEBUG:
         {
-        debug("TIPO_RX_TCPIP_SET_DEBUG");
             quint8 debug;
             ds >> debug;
             setDebug (debug);
@@ -181,7 +179,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_POWER:
         {
-        debug("TIPO_RX_TCPIP_POWER");
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
             m_devicePower->toDevice (bufferToDevice);
         }
@@ -189,7 +186,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_WD:
         {
-        debug("TIPO_RX_TCPIP_WD");
             quint8  val;
             ds >> val;
             m_devicePower->setWatchDog(val);
@@ -199,8 +195,12 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         case TIPO_RX_TCPIP_POWER_OFF:
         {
 #ifdef Q_WS_QWS
-        debug("TIPO_RX_TCPIP_POWER_OFF");
+        quint8 comando;
+        ds >> comando;
+        if (comando == 0)
             system ("shutdown -h now");
+        else if (comando == 1)
+            system ("reboot");
 #endif
         }
         break;
