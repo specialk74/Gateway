@@ -49,6 +49,8 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
     QObject::connect (this, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
 
+    QObject::connect (this, SIGNAL(toOneClientOnlySignal(QByteArray, ClientOven*)),
+                      clients, SLOT(toOneClientOnlySlot(QByteArray,ClientOven*)));
 
     QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
@@ -134,7 +136,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         case TIPO_RX_TCPIP_CAN_MSG:
         {
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
-            //m_deviceCAN->fromClientHandler (bufferToDevice);
             m_deviceCAN->toDevice(bufferToDevice);
             emit toClientsSignal(buffer, client);
         }
