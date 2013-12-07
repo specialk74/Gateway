@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
-    PowerManager::Instance()->setDevice ("/dev/ttyO3");
+    PowerManager::Instance()->setDevice ("/dev/ttyO5");
     HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), PowerManager::Instance());
 
     AbstractDevice * deviceCAN = NULL;
