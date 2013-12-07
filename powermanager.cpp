@@ -92,23 +92,6 @@ void PowerManager::toDevice (const QByteArray & buffer)
 
         m_device->write(buffer);
         m_device->flush();
-
-        bufferToDevice = buffer;
-        bufferToDevice.append((buffer.at(0) ^ 0xFF) + 1);
-
-        if (m_debug)
-        {
-            QDebug debugBuffer = qDebug();
-            debugBuffer << headDebug;
-            int var;
-            foreach (var, bufferToDevice) {
-                debugBuffer << hex << var;
-            }
-        }
-
-        m_device->write(buffer);
-        m_device->flush();
-
     }
 }
 
