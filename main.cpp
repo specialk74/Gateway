@@ -16,7 +16,7 @@
         const   int     portServer      = 6800;
 
 static  const   int     versioneMajor   = 0;
-static  const   int     versioneMinor   = 1;
+static  const   int     versioneMinor   = 2;
 
 QString getVersion ()
 {
