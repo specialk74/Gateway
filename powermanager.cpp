@@ -78,8 +78,7 @@ void PowerManager::fromDeviceSlot()
 
     if ((msgfromDevice.at(0) ^ 0xFF) != msgfromDevice.at(1))
     {
-        QString testo = QString ("CRC errato ");
-        testo << hex << msgfromDevice.at(0) ^ 0xFF;
+        QString testo = QString ("CRC errato %1").arg(msgfromDevice.at(0) ^ 0xFF, 16, 0);
         debug(testo);
         return;
     }
@@ -88,7 +87,7 @@ void PowerManager::fromDeviceSlot()
         QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
         stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
         stream << _htonl((quint32) 7);
-        stream << m_lastCmd;
+        stream << m_lastCmdRx;
         stream << msgfromDevice.at(0);
     }
 
@@ -105,7 +104,7 @@ void PowerManager::toDevice (const QByteArray & buffer)
     if (m_device && m_device->isOpen())
     {        
         QByteArray bufferToDevice = buffer;
-        m_lastCmd = buffer.at(0);
+        m_lastCmdRx = buffer.at(0);
         bufferToDevice.append(buffer.at(0) ^ 0xFF);
 
         if (m_debug)

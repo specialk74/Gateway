@@ -37,7 +37,7 @@ private:
             QSerialPort         *m_device;
             quint8              m_statoWD;
             QTimer              *m_timerWD;
-            quint8              m_lastCmd;
+            quint8              m_lastCmdRx;
 };
 
 #endif // POWERMANAGER_H
