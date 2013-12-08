@@ -58,23 +58,39 @@ void PowerManager::fromDeviceSlot()
 {
     QByteArray bufferToClients;
     QByteArray msgfromDevice = m_device->readAll();
-    {
-        QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
-        stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
-        stream << _htonl((quint32) msgfromDevice.length());
-    }
-    bufferToClients.append(msgfromDevice);
 
     if (m_debug)
     {
         QDebug debugBuffer = qDebug();
         debugBuffer << headDebug;
+        debugBuffer << " Rx ";
         int var;
         foreach (var, bufferToClients) {
             debugBuffer << hex << var;
         }
     }
 
+    if (msgfromDevice.length() != 2)
+    {
+        debug("Messaggio con lunghezza diversa da 2");
+        return;
+    }
+
+    if ((msgfromDevice.at(0) ^ 0xFF) != msgfromDevice.at(1))
+    {
+        QString testo = QString ("CRC errato ");
+        testo << hex << msgfromDevice.at(0) ^ 0xFF;
+        debug(testo);
+        return;
+    }
+
+    {
+        QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
+        stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
+        stream << _htonl((quint32) 7);
+        stream << m_lastCmd;
+        stream << msgfromDevice.at(0);
+    }
 
     emit toClientsSignal(bufferToClients, NULL);
 }
@@ -87,14 +103,16 @@ void PowerManager::fromDeviceSlot()
 void PowerManager::toDevice (const QByteArray & buffer)
 {    
     if (m_device && m_device->isOpen())
-    {
+    {        
         QByteArray bufferToDevice = buffer;
+        m_lastCmd = buffer.at(0);
         bufferToDevice.append(buffer.at(0) ^ 0xFF);
 
         if (m_debug)
         {
             QDebug debugBuffer = qDebug();
             debugBuffer << headDebug;
+            debugBuffer << " Tx ";
             int var;
             foreach (var, bufferToDevice) {
                 debugBuffer << hex << var;

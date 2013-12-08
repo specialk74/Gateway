@@ -18,7 +18,7 @@ public:
     bool setDevice (const QString &name);
     void setWatchDog (const quint8 &val);
 
-#define TIPO_TX_TCPIP_POWER_MSG (0x00)
+#define TIPO_TX_TCPIP_POWER_MSG (0x30)
 
 protected:
     explicit PowerManager(QObject *parent);
@@ -37,6 +37,7 @@ private:
             QSerialPort         *m_device;
             quint8              m_statoWD;
             QTimer              *m_timerWD;
+            quint8              m_lastCmd;
 };
 
 #endif // POWERMANAGER_H
