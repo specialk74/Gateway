@@ -48,15 +48,38 @@ void ClientOven::fromClientsSlot()
  */
 void ClientOven::toClientSlot (const QByteArray &buffer, ClientOven *client)
 {
-    qDebug() << "toClientSlot" << " client " << client << " this " << this;
     if (m_socket && (client != this))
+    {
+        if (m_debug)
+        {
+            QDebug debugBuffer = qDebug();
+            debugBuffer << headDebug;
+            int var;
+            foreach (var, buffer) {
+                debugBuffer << hex << var;
+            }
+        }
+
         send(buffer);
+    }
 }
 
 void ClientOven::toOneClientOnlySlot (const QByteArray &buffer, ClientOven *client)
 {
     if (m_socket && (client == this))
+    {
+        if (m_debug)
+        {
+            QDebug debugBuffer = qDebug();
+            debugBuffer << headDebug;
+            int var;
+            foreach (var, buffer) {
+                debugBuffer << hex << var;
+            }
+        }
+
         send(buffer);
+    }
 }
 
 void ClientOven::send (const QByteArray &buffer)

@@ -144,8 +144,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         debug("TIPO_RX_TCPIP_CAN_MSG");
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
             m_deviceCAN->toDevice(bufferToDevice);
-            debug("client");
-            qDebug() << client;
             emit toClientsSignal(buffer, client);
         }
         break;

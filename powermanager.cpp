@@ -65,7 +65,7 @@ void PowerManager::fromDeviceSlot()
         debugBuffer << headDebug;
         debugBuffer << " Rx ";
         int var;
-        foreach (var, bufferToClients) {
+        foreach (var, msgfromDevice) {
             debugBuffer << hex << var;
         }
     }
