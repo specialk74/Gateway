@@ -87,8 +87,8 @@ void PowerManager::fromDeviceSlot()
         QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
         stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
         stream << _htonl((quint32) 7);
-        stream << m_lastCmdRx;
-        stream << msgfromDevice.at(0);
+        stream << (quint8) m_lastCmdRx;
+        stream << (quint8) msgfromDevice.at(0);
     }
 
     emit toClientsSignal(bufferToClients, NULL);
