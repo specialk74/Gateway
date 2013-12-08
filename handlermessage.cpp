@@ -185,7 +185,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         {
             quint8  val;
             ds >> val;
-            m_devicePower->setWatchDog(val);
         }
         break;
 

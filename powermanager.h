@@ -16,13 +16,15 @@ public:
     void setDebug(const bool &val);
     void toDevice (const QByteArray & buffer);
     bool setDevice (const QString &name);
-    void setWatchDog (const quint8 &val);
 
 #define TIPO_TX_TCPIP_POWER_MSG (0x30)
+#define TIPO_RX_UART_POWER_OFF  (0xFF)
+#define TIPO_RX_UART_AD_VALUE   (0x01)
 
 protected:
     explicit PowerManager(QObject *parent);
     void debug (const QString &testo);
+    void buildMsgForClients (const quint8 &cmd, const quint8 &dat);
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
@@ -30,6 +32,7 @@ signals:
 protected slots:
     void fromDeviceSlot();
     void timeoutWd ();
+    void powerOff ();
 
 private:
     static  PowerManager        *m_Instance;

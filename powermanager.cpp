@@ -9,8 +9,10 @@
 
 static const char headDebug[] = "[PowerManager]";
 
-static const char wdtMessageStr[] = {0x01};
+static const char wdtMessageStr[] = {TIPO_RX_UART_AD_VALUE};
 static QByteArray wdtMessage (wdtMessageStr);
+static const char poweroffMessageStr[] = {TIPO_RX_UART_POWER_OFF};
+static QByteArray poweroffMessage (poweroffMessageStr);
 
 PowerManager * PowerManager::m_Instance = NULL;
 
@@ -37,6 +39,7 @@ PowerManager::PowerManager(QObject *parent) :
     m_timerWD = new QTimer (this);
     Q_ASSERT(m_timerWD);
     connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
+    m_timerWD->start(10*1000);
 }
 
 void PowerManager::setDebug(const bool &val)
@@ -50,13 +53,27 @@ void PowerManager::debug (const QString &testo)
         qDebug() << headDebug << qPrintable(testo);
 }
 
+void PowerManager::buildMsgForClients (const quint8 &cmd, const quint8 &dat)
+{
+    QByteArray bufferToClients;
+    QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
+    stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
+    stream << _htonl((quint32) 1+4+1+1);
+    stream << (quint8) cmd;
+    stream << (quint8) dat;
+
+    emit toClientsSignal(bufferToClients, NULL);
+}
+
 /*!
  * \brief AbstractDevice::toClients
  * \param buffer - Sono solo messaggi CAN
  */
 void PowerManager::fromDeviceSlot()
 {
-    QByteArray bufferToClients;
+#ifdef Q_WS_QWS
+    static bool timerAzionato = false;
+#endif
     QByteArray msgfromDevice = m_device->readAll();
 
     if (m_debug)
@@ -83,15 +100,38 @@ void PowerManager::fromDeviceSlot()
         return;
     }
 
+    switch (m_lastCmdRx)
     {
-        QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
-        stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
-        stream << _htonl((quint32) 7);
-        stream << (quint8) m_lastCmdRx;
-        stream << (quint8) msgfromDevice.at(0);
+    case TIPO_RX_UART_POWER_OFF:
+#ifdef Q_WS_QWS
+        if (!timerAzionato)
+        {
+            timerAzionato = true;
+            QTimer::singleShot(10*1000, this, SLOT(powerOff()));
+        }
+#endif
+        break;
+
+    case TIPO_RX_UART_AD_VALUE:
+        if (msgfromDevice.at(0) < 0)
+        {
+            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+            toDevice(poweroffMessage);
+            toDevice(poweroffMessage);
+            toDevice(poweroffMessage);
+        }
+        break;
     }
 
-    emit toClientsSignal(bufferToClients, NULL);
+    buildMsgForClients (m_lastCmdRx, msgfromDevice.at(0));
+}
+
+
+void PowerManager::powerOff ()
+{
+    system ("shutdown -h now");
 }
 
 
@@ -189,16 +229,6 @@ bool PowerManager::setDevice (const QString &name)
     }
 #endif
    return true;
-}
-
-
-void PowerManager::setWatchDog (const quint8 &val)
-{
-    m_statoWD = val;
-    if (m_statoWD)
-        m_timerWD->start(10*1000);
-    else
-        m_timerWD->stop();
 }
 
 void PowerManager::timeoutWd()
