@@ -42,10 +42,8 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
     m_clients = clients;
     m_deviceCAN = device;
 
-#if 0
     m_deviceCAN->setDebug(m_debug);
     m_clients->setDebug(m_debug);
-#endif
 
     QObject::connect (clients, SIGNAL(toDeviceSignal(QByteArray, ClientOven*)),
                       this, SLOT(fromClientSlot(QByteArray, ClientOven*)));
@@ -77,12 +75,11 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
 void HandlerMessageTcpIp::setDebug(const bool &val)
 {
     m_debug = val;
-#if 0
+
     if (m_deviceCAN)
         m_deviceCAN->setDebug(val);
     if (m_clients)
         m_clients->setDebug(val);
-#endif
     if (m_devicePower)
         m_devicePower->setDebug(val);
 }
