@@ -48,6 +48,7 @@ void ClientOven::fromClientsSlot()
  */
 void ClientOven::toClientSlot (const QByteArray &buffer, ClientOven *client)
 {
+    qDebug() << "toClientSlot" << " client " << client << " this " << this;
     if (m_socket && (client != this))
         send(buffer);
 }

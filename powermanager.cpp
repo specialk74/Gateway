@@ -65,6 +65,17 @@ void PowerManager::fromDeviceSlot()
     }
     bufferToClients.append(msgfromDevice);
 
+    if (m_debug)
+    {
+        QDebug debugBuffer = qDebug();
+        debugBuffer << headDebug;
+        int var;
+        foreach (var, bufferToClients) {
+            debugBuffer << hex << var;
+        }
+    }
+
+
     emit toClientsSignal(bufferToClients, NULL);
 }
 
