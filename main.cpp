@@ -33,17 +33,6 @@ void usage (void)
     qDebug() << "      -h, --help          visualizza questo help";
 }
 
-#if 0
-AbstractDevice * connectToSerialDevice (const bool & debug)
-{
-    AbstractDevice * device = Rs232Device::Instance();
-    Rs232Device::Instance()->setVersioneSw(versioneMajor, versioneMinor);
-    Rs232Device::Instance()->setDebug(debug);
-
-    return device;
-}
-#endif
-
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
@@ -106,8 +95,10 @@ int main(int argc, char *argv[])
     TcpGateway::Instance()->setPort(port);
     TcpGateway::Instance()->startListen();
 
+#ifdef Q_WS_QWS
     PowerManager::Instance()->setDevice ("/dev/ttyO4");
     HandlerMessageTcpIp::Instance()->setDevice(TcpGateway::Instance(), PowerManager::Instance());
+#endif
 
     AbstractDevice * deviceCAN = NULL;
 #ifdef Q_WS_QWS

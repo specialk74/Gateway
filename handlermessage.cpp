@@ -27,11 +27,6 @@ HandlerMessageTcpIp::HandlerMessageTcpIp(QObject *parent) :
     m_clients       = NULL;
     m_deviceCAN     = NULL;
     m_devicePower   = NULL;
-#if 0
-    m_timerWD = new QTimer (this);
-    Q_ASSERT(m_timerWD);
-    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
-#endif
 }
 
 void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * device)
@@ -60,6 +55,7 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, AbstractDevice * devic
 
 void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
 {
+#ifdef Q_WS_QWS
     Q_ASSERT(clients);
     Q_ASSERT(device);
 
@@ -70,6 +66,7 @@ void HandlerMessageTcpIp::setDevice (TcpGateway *clients, PowerManager * device)
 
     QObject::connect (device, SIGNAL(toClientsSignal(QByteArray, ClientOven*)),
                       clients, SLOT(fromDeviceSlot(QByteArray, ClientOven *)));
+#endif
 }
 
 void HandlerMessageTcpIp::setDebug(const bool &val)
@@ -80,8 +77,10 @@ void HandlerMessageTcpIp::setDebug(const bool &val)
         m_deviceCAN->setDebug(val);
     if (m_clients)
         m_clients->setDebug(val);
+#ifdef Q_WS_QWS
     if (m_devicePower)
         m_devicePower->setDebug(val);
+#endif
 }
 
 void HandlerMessageTcpIp::debug (const QString &testo)
@@ -138,7 +137,6 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
     {
         case TIPO_RX_TCPIP_CAN_MSG:
         {
-        debug("TIPO_RX_TCPIP_CAN_MSG");
             QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
             m_deviceCAN->toDevice(bufferToDevice);
             emit toClientsSignal(buffer, client);
@@ -176,8 +174,13 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 
         case TIPO_RX_TCPIP_POWER:
         {
-            QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
-            m_devicePower->toDevice (bufferToDevice);
+#ifdef Q_WS_QWS
+            if (m_devicePower)
+            {
+                QByteArray bufferToDevice = buffer.right(buffer.length() - lngHeadMsg);
+                m_devicePower->toDevice (bufferToDevice);
+            }
+#endif
         }
         break;
 
@@ -209,12 +212,3 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
         break;
     }
 }
-
-#if 0
-void HandlerMessageTcpIp::timeoutWd()
-{
-//#ifdef Q_WS_QWS
-
-//#endif
-}
-#endif

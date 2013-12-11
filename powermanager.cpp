@@ -16,6 +16,15 @@ static QByteArray poweroffMessage (poweroffMessageStr);
 
 PowerManager * PowerManager::m_Instance = NULL;
 
+#define MODIFICA_INVERSIONE_DATO_CRC (1)
+
+#if (MODIFICA_INVERSIONE_DATO_CRC == 0)
+#define POS_CRC     (1)
+#define POS_DATO    (0)
+#elif (MODIFICA_INVERSIONE_DATO_CRC == 1)
+#define POS_CRC     (0)
+#define POS_DATO    (1)
+#endif
 
 PowerManager *PowerManager::Instance (QObject *parent)
 {
@@ -93,9 +102,12 @@ void PowerManager::fromDeviceSlot()
         return;
     }
 
-    if ((msgfromDevice.at(0) ^ 0xFF) != msgfromDevice.at(1))
+    quint8 dato = msgfromDevice.at(POS_DATO);
+    quint8 crc  = msgfromDevice.at(POS_CRC);
+
+    if ((dato ^ 0xFF) != crc)
     {
-        QString testo = QString ("CRC errato %1").arg(msgfromDevice.at(0) ^ 0xFF, 16, 0);
+        QString testo = QString ("CRC errato %1").arg(dato ^ 0xFF, 16, 0);
         debug(testo);
         return;
     }
@@ -113,7 +125,7 @@ void PowerManager::fromDeviceSlot()
         break;
 
     case TIPO_RX_UART_AD_VALUE:
-        if (msgfromDevice.at(0) < 0)
+        if (dato < 0)
         {
             buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
             buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
@@ -125,7 +137,7 @@ void PowerManager::fromDeviceSlot()
         break;
     }
 
-    buildMsgForClients (m_lastCmdRx, msgfromDevice.at(0));
+    buildMsgForClients (m_lastCmdRx, dato);
 }
 
 

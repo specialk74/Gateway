@@ -38,13 +38,10 @@ private:
             quint8                  m_versioneMinor;
             TcpGateway              *m_clients;
             AbstractDevice          *m_deviceCAN;
-            //quint8                  m_statoWD;
-            //QTimer                  *m_timerWD;
             PowerManager            *m_devicePower;
 
 protected slots:
     void fromClientSlot (const QByteArray &buffer, ClientOven*client);
-    //void timeoutWd ();
 
 signals:
     void toClientsSignal (const QByteArray &buffer, ClientOven *client);
