@@ -12,11 +12,11 @@
 #include "rs232device.h"
 #include "tcpgateway.h"
 
-        const   char    projectName[]   = "ComOven2";
+        const   char    projectName[]   = "Gateway";
         const   int     portServer      = 6800;
 
 static  const   int     versioneMajor   = 0;
-static  const   int     versioneMinor   = 4;
+static  const   int     versioneMinor   = 11;
 
 QString getVersion ()
 {
@@ -32,7 +32,6 @@ void usage (void)
     qDebug() << "      -V, --version       visualizza la versione";
     qDebug() << "      -h, --help          visualizza questo help";
 }
-
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
@@ -116,3 +115,4 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+

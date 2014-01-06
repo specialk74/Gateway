@@ -47,7 +47,7 @@ PowerManager::PowerManager(QObject *parent) :
 
     m_timerWD = new QTimer (this);
     Q_ASSERT(m_timerWD);
-    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd()));
+    connect (m_timerWD, SIGNAL(timeout()), this, SLOT(timeoutWd())); // richiesta a tempo del valore di AD
     m_timerWD->start(10*1000);
 }
 
@@ -67,7 +67,7 @@ void PowerManager::buildMsgForClients (const quint8 &cmd, const quint8 &dat)
     QByteArray bufferToClients;
     QDataStream stream (&bufferToClients, QIODevice::WriteOnly);
     stream << (quint8) TIPO_TX_TCPIP_POWER_MSG;
-    stream << _htonl((quint32) 1+4+1+1);
+    stream << _htonl((quint32) 1 + 4 + 1 + 1);
     stream << (quint8) cmd;
     stream << (quint8) dat;
 
@@ -114,36 +114,45 @@ void PowerManager::fromDeviceSlot()
 
     switch (m_lastCmdRx)
     {
-    case TIPO_RX_UART_POWER_OFF:
+    case TIPO_RX_UART_POWER_OFF: // messaggio di ritorno dal power ad una richiesta di Power off
 #ifdef Q_WS_QWS
+        buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+        buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+        buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
         if (!timerAzionato)
         {
             timerAzionato = true;
-            QTimer::singleShot(10*1000, this, SLOT(powerOff()));
+            QTimer::singleShot(1*1000, this, SLOT(powerOff()));
         }
 #endif
         break;
 
     case TIPO_RX_UART_AD_VALUE:
-        if (dato < 0)
-        {
-            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
-            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
+        if (dato < 50) { // sotto la tensione di alimentazione
             buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
             toDevice(poweroffMessage);
+            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
             toDevice(poweroffMessage);
+            buildMsgForClients(TIPO_RX_UART_POWER_OFF, 0);
             toDevice(poweroffMessage);
+            if (!timerAzionato)
+            {
+                timerAzionato = true;
+                QTimer::singleShot(1*1000, this, SLOT(powerOff()));
+            }
         }
         break;
     }
 
-    buildMsgForClients (m_lastCmdRx, dato);
+    buildMsgForClients (m_lastCmdRx, dato); // tutti i messaggi ricevuti corretti vanno spediti ai Oven2
 }
 
 
 void PowerManager::powerOff ()
 {
     system ("shutdown -h now");
+    debug ("Gateway: EXIT");
+    exit(0xFF);
 }
 
 
@@ -155,8 +164,9 @@ void PowerManager::toDevice (const QByteArray & buffer)
 {    
     if (m_device && m_device->isOpen())
     {        
-        QByteArray bufferToDevice = buffer;
+        QByteArray bufferToDevice = "";
         m_lastCmdRx = buffer.at(0);
+        bufferToDevice.append(buffer.at(0));
         bufferToDevice.append(buffer.at(0) ^ 0xFF);
 
         if (m_debug)

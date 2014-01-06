@@ -196,10 +196,21 @@ void HandlerMessageTcpIp::fromClientSlot (const QByteArray &buffer, ClientOven*c
 #ifdef Q_WS_QWS
         quint8 comando;
         ds >> comando;
-        if (comando == 0)
+        if (comando == 0) {
+            if (m_devicePower)
+            {
+                QByteArray bufferToDevice = "";
+                bufferToDevice.append (TIPO_RX_UART_POWER_OFF);
+                m_devicePower->toDevice (bufferToDevice);
+                m_devicePower->toDevice (bufferToDevice);
+                m_devicePower->toDevice (bufferToDevice);
+            }
             system ("shutdown -h now");
-        else if (comando == 1)
+        } else if (comando == 1) {
             system ("reboot");
+        }
+        debug ("Gateway: EXIT");
+        exit(0xFF);
 #endif
         }
         break;
